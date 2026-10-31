@@ -1,4 +1,4 @@
-
+import shutil
 import streamlit as st
 import pymupdf
 import streamlit.components.v1 as components
@@ -14,9 +14,17 @@ def read_doc_file(uploaded_file):
         with open(input_path, "wb") as f:
             f.write(uploaded_file.getvalue())
 
+        libreoffice = (
+            shutil.which("libreoffice")
+            or shutil.which("soffice")
+        )
+
+        if not libreoffice:
+            raise FileNotFoundError("LibreOffice is not installed.")
+
         subprocess.run(
             [
-                r"C:\Program Files\LibreOffice\program\soffice.exe",
+                libreoffice,
                 "--headless",
                 "--convert-to", "docx",
                 "--outdir", temp_dir,
@@ -32,6 +40,7 @@ def read_doc_file(uploaded_file):
         )
 
         doc = Document(output_path)
+
         return "\n".join(p.text for p in doc.paragraphs)
 st.set_page_config(
     page_title="ReadEase AI",
